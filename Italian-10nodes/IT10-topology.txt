@@ -1,4 +1,3 @@
-#Link #	Contact A	Contact B	Node A	Node B	Length
 1	1	12	1	2	150
 2	4	41	1	7	350
 3	5	14	1	3	210
