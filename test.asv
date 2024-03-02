@@ -1,6 +1,0 @@
-%just for testing
-clear all;
-topology=load('/Users/hangjenchan/Desktop/Project/EEN_115/Italian-10nodes/IT10-topology.txt');
-NewEdges = table(A(:,4:5),A(:,6),'VariableNames',{'EndNodes','Weight'});
-
-plot(B)
