@@ -174,24 +174,44 @@ def benchmark(topology_file, traffic_file):
 
     def allocate_spectrum(request, path, flow, spectrum_usage):
         fsu_needed = int(math.ceil(flow / CABLE_CAPACITY)) * FSU_PER_CABLE
-        fsu_availability = [float('inf')] * (FSU_CAPACITY - fsu_needed + 1)
+        # 初始化频谱使用总和数组
+        spectrum_sum = [0] * FSU_CAPACITY
 
-        for start_index in range(FSU_CAPACITY - fsu_needed + 1):
-            fsu_sum = 0
-            for i in range(len(path) - 1):
-                edge = (path[i], path[i + 1])
-                fsu_sum += sum(spectrum_usage[edge][start_index:start_index + fsu_needed])
-            fsu_availability[start_index] = fsu_sum
+        # 累加所有链路的频谱使用情况到spectrum_sum中
+        for key in spectrum_usage:
+            spectrum_sum = [x + y for x, y in zip(spectrum_usage[key], spectrum_sum)]
 
-        min_usage = min(fsu_availability)
-        fsu_index = fsu_availability.index(min_usage)
+        # 初始化一个列表来存储每个频谱槽在路径上是否可用
+        fsu_availability = [True] * (FSU_CAPACITY - fsu_needed + 1)
 
+        # 遍历路径上的每条边来更新频谱槽的可用性
         for i in range(len(path) - 1):
             edge = (path[i], path[i + 1])
-            for j in range(fsu_index, fsu_index + fsu_needed):
+            for start_index in range(FSU_CAPACITY - fsu_needed + 1):
+                # 如果当前边的频谱槽已经被占用，则设置为不可用
+                if sum(spectrum_usage[edge][start_index:start_index + fsu_needed]) > 0:
+                    fsu_availability[start_index] = False
+
+        # 从可用的频谱槽中找到使用最少的那个
+        min_usage = float('inf')
+        best_start_index = -1
+        for start_index in range(FSU_CAPACITY - fsu_needed + 1):
+            if fsu_availability[start_index]:
+                current_usage = sum(spectrum_sum[start_index:start_index + fsu_needed])
+                if current_usage < min_usage:
+                    min_usage = current_usage
+                    best_start_index = start_index
+
+        if best_start_index == -1:
+            raise ValueError("No available spectrum slots found.")
+
+        # 更新每条边的频谱使用情况
+        for i in range(len(path) - 1):
+            edge = (path[i], path[i + 1])
+            for j in range(best_start_index, best_start_index + fsu_needed):
                 spectrum_usage[edge][j] += 1
 
-        return fsu_index, fsu_needed
+        return best_start_index, fsu_needed
 
     for request, path in best_state.items():
         source, target = request
