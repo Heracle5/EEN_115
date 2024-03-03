@@ -1,5 +1,6 @@
 from objective import objective
 from benchmark import benchmark
+from path_protection import path_protection
 import matplotlib.pyplot as plt
 import numpy as np
 # import pandas as pd
@@ -9,10 +10,13 @@ def main():
     matrix_file = 'G7-matrix-5.txt'
     num_fsu_used,highest_load,highest_fsu,average_fsu_used,average_path_length,total_cost=objective(topology_file, matrix_file)
     num_fsu_used_benchmark,highest_load_benchmark,highest_fsu_benchmark,average_fsu_used_benchmark,average_path_length_benchmark,total_cost_benchmark=benchmark(topology_file, matrix_file)
+    num_fsu_used_path_protection,highest_load_path_protection,highest_fsu_path_protection,average_fsu_used_path_protection,average_path_length_path_protection,total_cost_path_protection=path_protection(topology_file, matrix_file)
     print(num_fsu_used,highest_load,highest_fsu,average_fsu_used,average_path_length,total_cost)
     print(num_fsu_used_benchmark,highest_load_benchmark,highest_fsu_benchmark,average_fsu_used_benchmark,average_path_length_benchmark,total_cost_benchmark)
+    print(num_fsu_used_path_protection,highest_load_path_protection,highest_fsu_path_protection,average_fsu_used_path_protection,average_path_length_path_protection,total_cost_path_protection)
     data = [num_fsu_used,highest_load,highest_fsu,average_fsu_used,average_path_length,total_cost]
     data_benchmark = [num_fsu_used_benchmark,highest_load_benchmark,highest_fsu_benchmark,average_fsu_used_benchmark,average_path_length_benchmark,total_cost_benchmark]
+    data_path_protection = [num_fsu_used_path_protection,highest_load_path_protection,highest_fsu_path_protection,average_fsu_used_path_protection,average_path_length_path_protection,total_cost_path_protection]
 
     labels = ['FSU Used', 'Highest Load', 'Highest FSU', 'Average FSU Used', 'Average Path Length', 'Total Cost']
 
@@ -21,8 +25,9 @@ def main():
 
     x = np.arange(1)
     width = 0.35
-    ax1.bar(x - width / 2, [highest_load], width, label='Our method')
-    ax1.bar(x + width / 2, [highest_load_benchmark], width, label='Benchmark')
+    ax1.bar(x - width , [highest_load], width, label='Our method')
+    ax1.bar(x, [highest_load_benchmark], width, label='Benchmark')
+    ax1.bar(x + width , [highest_load_path_protection], width, label='Path Protection')
     ax1.set_ylabel('Value')
     ax1.set_title('Maximum Link Load Comparison')
     ax1.set_xticks(x)
@@ -30,9 +35,10 @@ def main():
     ax1.legend()
 
     x = np.arange(len(data) - 1)
-    width = 0.35
-    ax2.bar(x - width / 2, data[:1] + data[2:], width, label='Our method')
-    ax2.bar(x + width / 2, data_benchmark[:1] + data_benchmark[2:], width, label='Benchmark')
+    width = 0.3
+    ax2.bar(x - width , data[:1] + data[2:], width, label='Our method')
+    ax2.bar(x , data_benchmark[:1] + data_benchmark[2:], width, label='Benchmark')
+    ax2.bar(x + width, data_path_protection[:1] + data_path_protection[2:], width, label='Path Protection')
     ax2.set_ylabel('Value')
     ax2.set_title('Other Comparisons')
     ax2.set_xticks(x)
@@ -42,8 +48,8 @@ def main():
     ax2.legend()
 
     plt.tight_layout()
-    plt.suptitle('Comparison of Our Method and Benchmark of '+matrix_file, fontsize=10)
-    plt.savefig('objective_data_fig/comparison.'+matrix_file+'.png')
+    plt.suptitle('Comparison of Our Method, Benchmark, 1+1 path protection of '+matrix_file, fontsize=8)
+    plt.savefig('objective_data_fig/comparison-protection-.'+matrix_file+'.png')
 
     plt.show()
 
