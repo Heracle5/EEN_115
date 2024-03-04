@@ -8,7 +8,7 @@ import numpy as np
 
 def main():
     topology_file = 'IT10-topology.txt'
-    matrix_file = 'IT10-matrix-5.txt'
+    matrix_file = 'IT10-matrix-1.txt'
     num_fsu_used,highest_load,highest_fsu,average_fsu_used,average_path_length,total_cost=objective(topology_file, matrix_file)
     num_fsu_used_benchmark,highest_load_benchmark,highest_fsu_benchmark,average_fsu_used_benchmark,average_path_length_benchmark,total_cost_benchmark=benchmark(topology_file, matrix_file)
     num_fsu_used_path_protection,highest_load_path_protection,highest_fsu_path_protection,average_fsu_used_path_protection,average_path_length_path_protection,total_cost_path_protection=path_protection(topology_file, matrix_file)

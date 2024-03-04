@@ -52,12 +52,47 @@ def path_protection(topology_file, traffic_file):
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
     plt.title("Initial Network Topology")
     plt.show()
+    def filter_lists(lists, sub_list):
+        # 定义一个空列表用于存储结果
+        result = []
 
+        # 遍历给定的列表列表
+        for lst in lists:
+            # 使用之前定义的函数检查当前列表是否包含子列表的连续元素
+            if not has_matching_consecutive_subsequence(lst, sub_list):
+                # 如果不包含，将其添加到结果列表中
+                result.append(lst)
+
+        # 返回结果列表
+        return result
+
+    # 这里使用 has_matching_consecutive_subsequence 函数的定义
+    def has_matching_consecutive_subsequence(a, b):
+        # 确保a是较长的列表
+        if len(a) < len(b):
+            a, b = b, a
+
+        # 将列表转换为字符串形式，元素之间用非数字字符分隔，这里使用','
+        str_a = ','.join(map(str, a))
+        str_b = ','.join(map(str, b))
+
+        # 生成b的所有可能的连续子序列的字符串表示，并检查它们是否在a的字符串表示中
+        for i in range(len(b) - 1):
+            # 生成连续子序列的字符串表示
+            subseq_str = ','.join(map(str, b[i:i + 2]))
+
+            # 检查子序列字符串是否存在于a的字符串表示中
+            if subseq_str in str_a:
+                return True
+        return False
     initial_paths = {}
     inintial_back_up_paths= {}
     for (source, target), paths in ksp.items():
-        initial_paths[(source, target)] = paths[0]
-        inintial_back_up_paths[(source, target)] = paths[1]
+        initial_paths[(source, target)] = random.choice(paths)
+        while filter_lists(paths, initial_paths[(source, target)]) == []:
+            initial_paths[(source, target)] = random.choice(paths)
+        inintial_back_up_paths[(source, target)] = random.choice(filter_lists(paths, initial_paths[(source, target)]))
+        #inintial_back_up_paths[(source, target)] = paths[1]
 
     edge_flows = {(u, v): 0 for u, v in G.edges()}
     for (source, target), path in initial_paths.items():
@@ -101,10 +136,17 @@ def path_protection(topology_file, traffic_file):
                 break
 
             request = random.choice(list(ksp.keys()))
-            new_path = random.choice(ksp[request][1:])
-            new_back_up_path = random.choice(ksp[request][:1]+ksp[request][2:])
-            if new_path==new_back_up_path:
-                new_back_up_path = random.choice(ksp[request][:1]+ksp[request][2:])
+            new_path = random.choice(ksp[request])
+            # if filter_lists(ksp[request], new_path)!=[]:
+            #     new_back_up_path = random.choice(filter_lists(ksp[request], new_path))
+            while filter_lists(ksp[request], new_path)==[]:
+                new_path = random.choice(ksp[request])
+            new_back_up_path = random.choice(filter_lists(ksp[request], new_path))
+            #     random.choice(ksp[request][:1]+ksp[request][2:]))
+            # while has_consecutive_common_elements(new_path, new_back_up_path):
+            #     new_back_up_path = random.choice(ksp[request][:1] + ksp[request][2:])
+            # if new_path==new_back_up_path:
+            #     new_back_up_path = random.choice(ksp[request][:1]+ksp[request][2:])
 
             new_edge_flows = current_edge_flows.copy()
             flow = traffic_matrix[request[0] - 1][request[1] - 1]
@@ -271,8 +313,8 @@ def path_protection(topology_file, traffic_file):
             for node in range(len(path) - 1):
                 edge = (path[node], path[node + 1])
                 row = edge_to_row[edge]
-                ax.add_patch(Rectangle((start_col, row), num_cols, 1, color=color_map[request]))
-                ax.text(start_col + num_cols / 2, row + 0.5, str(request), color='white', ha='center', va='center')
+                ax.add_patch(Rectangle((start_col, row), num_cols, 1, fill=False, color=color_map[request],hatch='//'))
+                ax.text(start_col + num_cols / 2, row + 0.5, str(request), color='black', ha='center', va='center')
 
 
         ax.set_xlim(0, FSU_CAPACITY)
@@ -321,7 +363,7 @@ def path_protection(topology_file, traffic_file):
     return performance_calculation(spectrum_usage,best_state,G,COST_PER_CABLE,FSU_PER_CABLE)
 
 if __name__ == '__main__':
-    num_fsu_used,highest_load,highest_fsu,average_fsu_used,average_path_length,total_cost=objective('G7-topology.txt', 'G7-matrix-5.txt')
+    num_fsu_used,highest_load,highest_fsu,average_fsu_used,average_path_length,total_cost=path_protection('G7-topology.txt', 'G7-matrix-5.txt')
     # print("Done")
 
 
